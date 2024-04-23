@@ -13,7 +13,6 @@ use crate::data::Database;
 use crate::shutdown::Controller;
 use crate::types::IdentityConfig;
 use crate::{
-	api::v1,
 	network::rpc::{self},
 	types::{RuntimeConfig, State},
 };
@@ -52,11 +51,9 @@ impl<T: Database + Clone + Send + Sync + 'static> Server<T> {
 		let RuntimeConfig {
 			http_server_host: host,
 			http_server_port: port,
-			app_id,
 			..
 		} = self.cfg.clone();
 
-		let v1_api = v1::routes(self.db.clone(), app_id, self.state.clone());
 		let v2_api = v2::routes(
 			self.version.clone(),
 			self.network_version.clone(),
@@ -73,7 +70,7 @@ impl<T: Database + Clone + Send + Sync + 'static> Server<T> {
 			.allow_header("content-type")
 			.allow_methods(vec!["GET", "POST", "DELETE"]);
 
-		let routes = health_route().or(v1_api).or(v2_api).with(cors);
+		let routes = health_route().or(v2_api).with(cors);
 
 		let addr = SocketAddr::from_str(format!("{host}:{port}").as_str())
 			.wrap_err("Unable to parse host address from config")

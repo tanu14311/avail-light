@@ -1,3 +1,4 @@
+use hyper::StatusCode;
 use std::{
 	convert::Infallible,
 	fmt::Display,
@@ -41,6 +42,18 @@ fn with_ws_clients(
 	clients: WsClients,
 ) -> impl Filter<Extract = (WsClients,), Error = Infallible> + Clone {
 	warp::any().map(move || clients.clone())
+}
+
+fn v1_route() -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+	warp::path!("v1")
+		.and(warp::path::tail())
+		.and(warp::any())
+		.map(|_| {
+			warp::reply::with_status(
+				"API v1 is deprecated. Please migrate to API v2.",
+				StatusCode::GONE,
+			)
+		})
 }
 
 fn version_route(
@@ -207,7 +220,8 @@ pub fn routes(
 		})
 	});
 
-	version_route(version.clone())
+	v1_route()
+		.or(version_route(version.clone()))
 		.or(status_route(config.clone(), state.clone()))
 		.or(block_route(config.clone(), state.clone(), db.clone()))
 		.or(block_header_route(
