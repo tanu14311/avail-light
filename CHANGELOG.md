@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.9.2]
+
+- Add automatic Kademlia mode switch based on external reachability and local hardware resources
+
 ## [1.9.1](https://github.com/availproject/avail-light/releases/tag/v1.9.1) - 2024-06-10
 
 - Add `hex` network support to the `--network` CLI parameter

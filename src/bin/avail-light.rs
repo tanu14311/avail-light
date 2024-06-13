@@ -5,13 +5,14 @@ use avail_light::{
 	api,
 	consts::EXPECTED_SYSTEM_VERSION,
 	data::rocks_db::RocksDB,
-	maintenance::StaticConfigParams,
 	network::{self, p2p, rpc},
 	shutdown::Controller,
 	sync_client::SyncClient,
 	sync_finality::SyncFinality,
 	telemetry::{self, otlp::MetricAttributes, MetricCounter, Metrics},
-	types::{CliOpts, IdentityConfig, LibP2PConfig, OtelConfig, RuntimeConfig, State},
+	types::{
+		CliOpts, IdentityConfig, LibP2PConfig, MaintenanceConfig, OtelConfig, RuntimeConfig, State,
+	},
 };
 use clap::Parser;
 use color_eyre::{
@@ -394,14 +395,7 @@ async fn run(shutdown: Controller<String>) -> Result<()> {
 		s.finality_synced = true;
 	}
 
-	let static_config_params = StaticConfigParams {
-		block_confidence_treshold: cfg.confidence,
-		replication_factor: cfg.replication_factor,
-		query_timeout: cfg.query_timeout,
-		pruning_interval: cfg.store_pruning_interval,
-		telemetry_flush_interval: cfg.ot_flush_block_interval,
-	};
-
+	let static_config_params: MaintenanceConfig = (&cfg).into();
 	tokio::task::spawn(shutdown.with_cancel(avail_light::maintenance::run(
 		p2p_client.clone(),
 		ot_metrics.clone(),
