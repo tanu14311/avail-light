@@ -17,7 +17,7 @@ use crate::{
 		LatestHeaderKey, VerifiedHeaderKey,
 	},
 	finality::{check_finality, ValidatorSet},
-	types::{GrandpaJustification, OptionBlockRange},
+	types::{BlockRange, GrandpaJustification},
 	utils::filter_auth_set_changes,
 };
 
@@ -242,9 +242,9 @@ impl<T: Database + Clone> SubscriptionLoop<T> {
 					.db
 					.get(VerifiedHeaderKey)
 					.expect("Light Client failed to fetch Verified Header from DB.")
-					.unwrap_or(None);
+					.unwrap_or_else(|| BlockRange::init(header.number));
 				// mutate value
-				verified_header.set(header.number);
+				verified_header.last = header.number;
 				// and store in DB
 				self.db
 					.put(VerifiedHeaderKey, verified_header)
